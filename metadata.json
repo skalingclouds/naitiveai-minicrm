@@ -1,0 +1,5 @@
+{
+  "name": "Naitive Connect",
+  "description": "An elegant dashboard component to display detailed information about a project, including status, assignees, tasks, and attachments, with an integrated AI summary feature powered by Gemini.",
+  "requestFramePermissions": []
+}
