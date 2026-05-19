@@ -33,6 +33,31 @@ export type SubTask = {
   dependsOn?: number[]; // Array of Task IDs that must be completed before this task can start
 };
 
+export type ProposalStage = 'Draft' | 'Sent' | 'In Review' | 'Won' | 'Lost';
+
+export interface Proposal {
+  id: string;
+  client: string;
+  title: string;
+  status: ProposalStage;
+  value: number;
+  dateRange: { start: string; end: string };
+  createdAt: string;
+  notes: string;
+  
+  // Generated fields
+  description: string;
+  painPoints: string[];
+  solution: string;
+  architectureMermaid?: string;
+  aiArchitectureImageUrl?: string;
+  documents: Attachment[];
+  
+  // Status flags
+  signed: boolean;
+  paid: boolean;
+}
+
 export type Project = {
   id: string;
   title: string;

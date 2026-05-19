@@ -51,10 +51,10 @@ export const performProposalResearch = async (input: ProposalInput): Promise<Res
 /**
  * PROPOSAL SYNTHESIS: Creates a robust proposal based on research.
  */
-export const generateRobustProposal = async (input: ProposalInput, research: ResearchResult): Promise<string> => {
+export const generateRobustProposal = async (input: ProposalInput, research: ResearchResult): Promise<any> => {
     const prompt = `
     You are the Lead Strategist at NATIVE AI Consulting Agency. 
-    Synthesize the following information into a high-impact project proposal.
+    Synthesize the following information into a high-impact project proposal structure.
     
     CLIENT: ${input.clientName}
     PROJECT: ${input.projectTitle}
@@ -68,31 +68,55 @@ export const generateRobustProposal = async (input: ProposalInput, research: Res
     ${research.content}
     
     The proposal should include:
-    - Executive Summary
-    - Proposed Solution (Specific tech stack from research)
-    - Strategic Value Proposition
-    - High-level Phasing
-    
-    Format in professional Markdown for NATIVE Agency.
+    - description: A short, punchy executive summary paragraph.
+    - painPoints: Array of 3-5 friction points or challenges to solve.
+    - solution: The Markdown-formatted Proposal Document (include Executive Summary, Proposed Solution with tech stack, Strategic Value Proposition, High-level Phasing).
+    - mermaid: A Mermaid.js graph code (graph TD or sequenceDiagram) illustrating the high-level system architecture, workflow, or solution strategy. Only the plain text of the diagram, no markdown blocks.
+    - imagePrompt: A detailed, comma-separated midjourney/imagen style prompt for generating a photorealistic architectural/conceptual hero image. (e.g. "photorealistic cloud infrastructure visualization, glowing neon data streams, modern minimal white background, 8k resolution, volumetric lighting")
     `;
 
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
-        contents: prompt
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    description: { type: Type.STRING },
+                    painPoints: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    solution: { type: Type.STRING },
+                    mermaid: { type: Type.STRING },
+                    imagePrompt: { type: Type.STRING }
+                },
+                required: ["description", "painPoints", "solution", "mermaid", "imagePrompt"]
+            }
+        }
     });
-    return response.text || "";
+
+    try {
+        return JSON.parse(response.text || '{}');
+    } catch {
+        return {
+            description: "Proposal ready.",
+            painPoints: [],
+            solution: response.text || "",
+            mermaid: "graph TD\\n A-->B",
+            imagePrompt: "photorealistic architectural cloud infrastructure diagram"
+        };
+    }
 };
 
 /**
  * SOW WRITER AGENT: Generates detailed Statement of Work.
  */
-export const generateSOW = async (input: ProposalInput, proposal: string, previousCritique?: string): Promise<string> => {
+export const generateSOW = async (input: ProposalInput, proposalData: any, previousCritique?: string): Promise<string> => {
     const prompt = `
     You are the SOW Writing Agent for NATIVE AI Consulting Agency.
     Generate a detailed Statement of Work (SOW) based on the project proposal below.
     
     PROPOSAL CONTEXT:
-    ${proposal}
+    ${proposalData.solution}
     
     CONSTRAINTS:
     - Budget: $${input.budget} (Fixed Bid)
@@ -257,4 +281,24 @@ export const generateInvoice = async (project: Project): Promise<string> => {
     const prompt = `Generate Invoice for ${project.title}, value $${project.value}`;
     const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
     return response.text || "";
+}
+
+export const generateProposalImage = async (prompt: string): Promise<string> => {
+    try {
+        const response = await ai.models.generateImages({
+            model: 'imagen-3.0-generate-002',
+            prompt: prompt,
+            config: {
+                outputMimeType: 'image/jpeg',
+                aspectRatio: '16:9'
+            }
+        });
+        const base64 = response.generatedImages?.[0]?.image?.imageBytes;
+        if (!base64) throw new Error("No image generated");
+        return `data:image/jpeg;base64,${base64}`;
+    } catch (e) {
+        console.error(e);
+        // Return a mock placeholder if imagery fails
+        return `https://picsum.photos/seed/${encodeURIComponent(prompt)}/800/450`;
+    }
 }

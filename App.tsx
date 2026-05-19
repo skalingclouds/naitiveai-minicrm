@@ -2,11 +2,15 @@
 import * as React from 'react';
 import { Dashboard } from './components/Dashboard';
 import { ProjectDetailView } from './components/ui/project-detail-view';
-import { Project } from './types';
+import { ProposalDetailView } from './components/ProposalDetailView';
+import { generateProposalImage } from './services/geminiService';
+import { Project, Proposal } from './types';
 
 function App() {
-  const [currentView, setCurrentView] = React.useState<'dashboard' | 'project'>('dashboard');
+  const [currentView, setCurrentView] = React.useState<'dashboard' | 'project' | 'proposal'>('dashboard');
   const [selectedProjectId, setSelectedProjectId] = React.useState<string | null>(null);
+  const [selectedProposalId, setSelectedProposalId] = React.useState<string | null>(null);
+  const [proposals, setProposals] = React.useState<Proposal[]>([]);
   
   // Initial Mock Data
   const [projects, setProjects] = React.useState<Project[]>([
@@ -131,6 +135,7 @@ function App() {
   };
 
   const selectedProject = projects.find(p => p.id === selectedProjectId);
+  const selectedProposal = proposals.find(p => p.id === selectedProposalId);
 
   const Logo = () => (
     <div className="flex items-center cursor-pointer transition-opacity hover:opacity-80 gap-3" onClick={() => setCurrentView('dashboard')}>
@@ -163,9 +168,13 @@ function App() {
         {currentView === 'dashboard' && (
             <Dashboard 
               projects={projects} 
+              proposals={proposals}
               onSelectProject={handleSelectProject} 
               onCreateProject={handleCreateProject}
               onDeleteProject={handleDeleteProject}
+              onSelectProposal={(p) => { setSelectedProposalId(p.id); setCurrentView('proposal'); }}
+              onCreateProposal={(p) => setProposals([...proposals, p])}
+              onDeleteProposal={(id) => setProposals(prev => prev.filter(x => x.id !== id))}
             />
         )}
         {currentView === 'project' && selectedProject && (
@@ -174,6 +183,20 @@ function App() {
                   {...selectedProject} 
                   onBack={() => setCurrentView('dashboard')}
                   onUpdate={handleUpdateProject}
+               />
+            </div>
+        )}
+        {currentView === 'proposal' && selectedProposal && (
+            <div className="flex items-start justify-center p-4 sm:p-8 min-h-[calc(100vh-4rem)]">
+               <ProposalDetailView 
+                  {...selectedProposal} 
+                  onBack={() => setCurrentView('dashboard')}
+                  onUpdateProposal={(updatedProposal) => setProposals(prev => prev.map(p => p.id === updatedProposal.id ? updatedProposal : p))}
+                  onConvertToProject={(newProject) => {
+                      setProjects([...projects, newProject]);
+                      // Delete the won proposal, or keep it as won? Let's keep it but user can delete it in Dashboard.
+                  }}
+                  onGenerateImage={generateProposalImage}
                />
             </div>
         )}
