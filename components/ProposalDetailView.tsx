@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/
 import { Badge } from "./ui/badge";
 import { cn } from "../lib/utils";
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import mermaid from 'mermaid';
+import { ZoomIn, ZoomOut, Maximize2, Minimize2, RotateCcw } from "lucide-react";
 
 const Icons = {
   ArrowRight: (props: React.SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
@@ -25,6 +27,23 @@ interface ProposalDetailViewProps extends Proposal {
     onConvertToProject: (project: Project) => void;
     onGenerateImage: (prompt: string) => Promise<string>;
 }
+
+const renderMarkdownComponents = {
+  h1: ({node, ...props}: any) => <h1 className="text-2xl font-bold mt-6 mb-4 text-foreground border-b pb-2 font-sans tracking-tight" {...props} />,
+  h2: ({node, ...props}: any) => <h2 className="text-xl font-bold mt-5 mb-3 text-foreground font-sans tracking-tight" {...props} />,
+  h3: ({node, ...props}: any) => <h3 className="text-lg font-semibold mt-4 mb-2 text-foreground font-sans tracking-tight" {...props} />,
+  p: ({node, ...props}: any) => <p className="my-3 leading-relaxed text-muted-foreground text-sm font-sans" {...props} />,
+  ul: ({node, ...props}: any) => <ul className="list-disc list-inside my-3 space-y-1.5 pl-4 text-muted-foreground" {...props} />,
+  ol: ({node, ...props}: any) => <ol className="list-decimal list-inside my-3 space-y-1.5 pl-4 text-muted-foreground" {...props} />,
+  li: ({node, ...props}: any) => <li className="text-muted-foreground text-sm font-sans mb-1" {...props} />,
+  code: ({node, ...props}: any) => <code className="bg-muted px-1.5 py-0.5 rounded font-mono text-xs text-primary border" {...props} />,
+  pre: ({node, ...props}: any) => <pre className="bg-muted p-4 rounded-lg my-4 overflow-x-auto font-mono text-xs border" {...props} />,
+  blockquote: ({node, ...props}: any) => <blockquote className="border-l-4 border-primary/40 pl-4 italic my-4 text-muted-foreground bg-muted/20 py-1 rounded-r" {...props} />,
+  hr: ({node, ...props}: any) => <hr className="my-6 border-muted" {...props} />,
+  table: ({node, ...props}: any) => <div className="overflow-x-auto my-4"><table className="min-w-full border-collapse border border-border" {...props} /></div>,
+  th: ({node, ...props}: any) => <th className="border border-border p-2 bg-muted text-left font-bold text-sm" {...props} />,
+  td: ({node, ...props}: any) => <td className="border border-border p-2 text-left text-sm text-muted-foreground" {...props} />
+};
 
 export const ProposalDetailView = (props: ProposalDetailViewProps) => {
     const [activeTab, setActiveTab] = React.useState<'pitch' | 'architecture' | 'sow' | 'sign'>('pitch');
@@ -176,7 +195,7 @@ export const ProposalDetailView = (props: ProposalDetailViewProps) => {
                                      <p className="text-muted-foreground font-medium relative z-10">Prepared exclusively for {props.client}</p>
                                 </div>
                                 <div className="p-8 prose prose-sm sm:prose-base dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-primary">
-                                    <ReactMarkdown>{props.solution}</ReactMarkdown>
+                                    <ReactMarkdown components={renderMarkdownComponents} remarkPlugins={[remarkGfm]}>{(props.solution || "").replace(/\\n/g, "\n")}</ReactMarkdown>
                                 </div>
                             </CardContent>
                         </Card>
@@ -188,14 +207,14 @@ export const ProposalDetailView = (props: ProposalDetailViewProps) => {
                                 <Card className="overflow-hidden border-primary/20">
                                     <img src={props.aiArchitectureImageUrl} alt="System Architecture" className="w-full h-auto object-cover max-h-[500px]" referrerPolicy="no-referrer" />
                                     <div className="p-4 bg-muted/30 border-t text-sm font-medium text-muted-foreground">
-                                        Photorealistic Concept generated via Imagen 3 based on proposed architecture.
+                                        Photorealistic Concept generated via Gemini 3.1 Flash Image based on proposed architecture.
                                     </div>
                                 </Card>
                             ) : (
                                 <Card className="p-12 text-center bg-muted/20 border-dashed">
                                     <Icons.Brain className="h-12 w-12 mx-auto text-primary opacity-50 mb-4" />
-                                    <p className="font-medium text-lg mb-2">Visualize the Infrastructure</p>
-                                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">Generate a photorealistic view of the cloud and AI architecture proposed for this project.</p>
+                                    <p className="font-medium text-lg mb-2">Visualize the Infrastructure via Gemini 3.1 Flash Image</p>
+                                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">Generate a high-fidelity, photorealistic visualization of the cloud and custom AI architecture using the latest Gemini 3.1 Flash Image generation engine.</p>
                                     <Button onClick={handleGenerateImage}>Generate Concept Art</Button>
                                 </Card>
                             )}
@@ -203,11 +222,7 @@ export const ProposalDetailView = (props: ProposalDetailViewProps) => {
                             {props.architectureMermaid && (
                                 <Card className="p-6">
                                     <h3 className="text-lg font-bold mb-4 font-mono tracking-tight text-primary uppercase text-sm border-b pb-2">Technical Flow</h3>
-                                    <div className="flex justify-center bg-background/50 p-4 rounded-xl border">
-                                        <div className="mermaid">
-                                            {props.architectureMermaid}
-                                        </div>
-                                    </div>
+                                    <InteractiveMermaid code={props.architectureMermaid} />
                                 </Card>
                             )}
                         </div>
@@ -216,7 +231,7 @@ export const ProposalDetailView = (props: ProposalDetailViewProps) => {
                     {activeTab === 'sow' && (
                         <Card className="p-8 border-primary/20 shadow-lg bg-background">
                             <div className="prose prose-sm dark:prose-invert max-w-none font-sans prose-headings:font-bold border-l-4 border-primary/40 pl-6 my-4">
-                                <ReactMarkdown>{props.sowContent || "SOW content pending..."}</ReactMarkdown>
+                                <ReactMarkdown components={renderMarkdownComponents} remarkPlugins={[remarkGfm]}>{(props.sowContent || "SOW content pending...").replace(/\\n/g, "\n")}</ReactMarkdown>
                             </div>
                         </Card>
                     )}
@@ -314,6 +329,35 @@ export const ProposalDetailView = (props: ProposalDetailViewProps) => {
                         </CardContent>
                     </Card>
                 </div>
+            </div>
+        </div>
+    );
+};
+
+interface InteractiveMermaidProps {
+    code: string;
+}
+
+const InteractiveMermaid = ({ code }: InteractiveMermaidProps) => {
+    React.useEffect(() => {
+        try {
+            mermaid.initialize({ 
+                startOnLoad: false, 
+                theme: 'dark',
+                securityLevel: 'loose',
+            });
+            setTimeout(() => {
+                mermaid.contentLoaded();
+            }, 100);
+        } catch (err) {
+            console.error(err);
+        }
+    }, [code]);
+
+    return (
+        <div className="w-full overflow-x-auto bg-slate-900/30 p-8 rounded-xl border border-slate-700/30 flex justify-center">
+            <div className="mermaid min-w-max">
+                {code}
             </div>
         </div>
     );

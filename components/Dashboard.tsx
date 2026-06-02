@@ -16,7 +16,6 @@ const Icons = {
   DollarSign: (props: React.SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
   Activity: (props: React.SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
   Briefcase: (props: React.SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="20" height="14" x="2" y="7" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>,
-  Sparkles: (props: React.SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="m5 3 1 1"/><path d="m5 21 1-1"/><path d="m21 3-1 1"/><path d="m21 21-1-1"/></svg>,
   FileText: (props: React.SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>,
 };
 
@@ -113,7 +112,7 @@ export const Dashboard = ({ projects, proposals, onSelectProject, onCreateProjec
                 </div>
                 <div className="flex gap-2">
                      <Button variant="outline" onClick={() => setIsProposalOpen(true)} className="border-primary/40 hover:bg-primary/5 transition-all text-primary hover:text-primary">
-                        <Icons.Sparkles className="h-4 w-4 mr-2" />
+                        <Icons.FileText className="h-4 w-4 mr-2" />
                         AI Proposal Engine
                     </Button>
                      <Button onClick={() => setIsCreateOpen(true)}>
@@ -235,7 +234,7 @@ export const Dashboard = ({ projects, proposals, onSelectProject, onCreateProjec
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-2 duration-500">
                     {proposals.length === 0 ? (
                         <div className="col-span-full border border-dashed rounded-lg p-12 text-center text-muted-foreground bg-muted/10">
-                            <Icons.Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                            <Icons.FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                             <h3 className="text-lg font-semibold text-foreground mb-2">No Active Proposals</h3>
                             <p className="max-w-md mx-auto mb-6">Build a stunning AI-generated proposal to win your next deal.</p>
                             <Button onClick={() => setIsProposalOpen(true)}>Create First Proposal</Button>

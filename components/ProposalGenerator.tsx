@@ -172,12 +172,17 @@ export const ProposalGenerator = ({ onClose, onProposalCreated }: { onClose: () 
                                 />
                             </div>
 
+                            {status.message && (
+                                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md text-red-500 font-medium text-sm text-center">
+                                    {status.message}
+                                </div>
+                            )}
                             <Button 
                                 className="w-full h-12 text-lg font-bold group"
                                 onClick={handleGenerate}
                                 disabled={!input.projectTitle || !input.clientName || !input.notes}
                             >
-                                <Icons.Sparkles className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                                <Icons.Brain className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
                                 Synthesize Deep Pitch Deck
                             </Button>
                         </div>
