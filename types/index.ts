@@ -51,6 +51,8 @@ export interface Proposal {
   solution: string;
   architectureMermaid?: string;
   aiArchitectureImageUrl?: string;
+  aiArchitectureImagePrompt?: string;
+  sowContent?: string;
   documents: Attachment[];
   
   // Status flags
@@ -97,6 +99,6 @@ export interface ResearchResult {
 }
 
 export interface AgentStatus {
-    phase: 'idle' | 'researching' | 'synthesizing' | 'reviewing' | 'completed';
+    phase: 'idle' | 'researching' | 'synthesizing' | 'reviewing' | 'generating-image' | 'completed';
     message: string;
 }

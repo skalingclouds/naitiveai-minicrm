@@ -7,7 +7,7 @@ import { cn } from "../lib/utils";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import mermaid from 'mermaid';
-import { ZoomIn, ZoomOut, Maximize2, Minimize2, RotateCcw } from "lucide-react";
+import { normalizeMermaidCode } from '../lib/mermaid';
 
 const Icons = {
   ArrowRight: (props: React.SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
@@ -48,14 +48,7 @@ const renderMarkdownComponents = {
 export const ProposalDetailView = (props: ProposalDetailViewProps) => {
     const [activeTab, setActiveTab] = React.useState<'pitch' | 'architecture' | 'sow' | 'sign'>('pitch');
     const [isAvatarPlaying, setIsAvatarPlaying] = React.useState(false);
-    
-    // Setup Mermaid
-    React.useEffect(() => {
-        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
-        setTimeout(() => {
-            mermaid.contentLoaded();
-        }, 100);
-    }, [activeTab]);
+    const [isGeneratingImage, setIsGeneratingImage] = React.useState(false);
 
     const handleSign = () => {
         props.onUpdateProposal({ ...props, signed: true, status: 'Won' });
@@ -100,11 +93,14 @@ export const ProposalDetailView = (props: ProposalDetailViewProps) => {
 
     const handleGenerateImage = async () => {
         if (!props.aiArchitectureImagePrompt) return;
+        setIsGeneratingImage(true);
         try {
             const url = await props.onGenerateImage(props.aiArchitectureImagePrompt);
             props.onUpdateProposal({ ...props, aiArchitectureImageUrl: url });
         } catch (error) {
             console.error("Image generation failed", error);
+        } finally {
+            setIsGeneratingImage(false);
         }
     };
 
@@ -214,8 +210,17 @@ export const ProposalDetailView = (props: ProposalDetailViewProps) => {
                                 <Card className="p-12 text-center bg-muted/20 border-dashed">
                                     <Icons.Brain className="h-12 w-12 mx-auto text-primary opacity-50 mb-4" />
                                     <p className="font-medium text-lg mb-2">Visualize the Infrastructure via Gemini 3.1 Flash Image</p>
-                                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">Generate a high-fidelity, photorealistic visualization of the cloud and custom AI architecture using the latest Gemini 3.1 Flash Image generation engine.</p>
-                                    <Button onClick={handleGenerateImage}>Generate Concept Art</Button>
+                                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">Generate a high-fidelity architecture visualization using Gemini 3.1 Flash Image.</p>
+                                    <Button onClick={handleGenerateImage} disabled={isGeneratingImage}>
+                                        {isGeneratingImage ? (
+                                            <>
+                                                <Icons.Loader className="h-4 w-4 mr-2 animate-spin" />
+                                                Generating...
+                                            </>
+                                        ) : (
+                                            "Generate Concept Art"
+                                        )}
+                                    </Button>
                                 </Card>
                             )}
 
@@ -339,26 +344,53 @@ interface InteractiveMermaidProps {
 }
 
 const InteractiveMermaid = ({ code }: InteractiveMermaidProps) => {
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const [error, setError] = React.useState<string | null>(null);
+    const renderId = React.useId().replace(/:/g, "");
+
     React.useEffect(() => {
-        try {
-            mermaid.initialize({ 
-                startOnLoad: false, 
-                theme: 'dark',
-                securityLevel: 'loose',
-            });
-            setTimeout(() => {
-                mermaid.contentLoaded();
-            }, 100);
-        } catch (err) {
-            console.error(err);
-        }
-    }, [code]);
+        const normalized = normalizeMermaidCode(code);
+        if (!containerRef.current || !normalized) return;
+
+        let cancelled = false;
+
+        (async () => {
+            try {
+                mermaid.initialize({
+                    startOnLoad: false,
+                    theme: "dark",
+                    securityLevel: "loose",
+                    fontFamily: "inherit",
+                });
+                const { svg } = await mermaid.render(`mermaid-${renderId}`, normalized);
+                if (!cancelled && containerRef.current) {
+                    containerRef.current.innerHTML = svg;
+                    setError(null);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setError(err instanceof Error ? err.message : "Failed to render diagram");
+                }
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [code, renderId]);
+
+    if (error) {
+        return (
+            <div className="w-full overflow-x-auto bg-slate-900/30 p-8 rounded-xl border border-red-500/30">
+                <p className="text-sm text-red-400 mb-3 font-medium">Could not render diagram</p>
+                <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-mono">{normalizeMermaidCode(code)}</pre>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full overflow-x-auto bg-slate-900/30 p-8 rounded-xl border border-slate-700/30 flex justify-center">
-            <div className="mermaid min-w-max">
-                {code}
-            </div>
+            <div ref={containerRef} className="min-w-max [&_svg]:max-w-full [&_svg]:h-auto" />
         </div>
     );
 };

@@ -8,8 +8,10 @@ import {
     performProposalResearch, 
     generateRobustProposal, 
     generateSOW, 
-    reviewSOW 
+    reviewSOW,
+    generateProposalImage,
 } from '../services/geminiService';
+import { normalizeMermaidCode } from '../lib/mermaid';
 import { ProposalInput, ResearchResult, AgentStatus } from '../types';
 
 const Icons = {
@@ -56,6 +58,15 @@ export const ProposalGenerator = ({ onClose, onProposalCreated }: { onClose: () 
                 currentSow = await generateSOW(input, propData, review.critique);
             }
 
+            setStatus({ phase: 'generating-image', message: "Rendering architecture concept with Gemini 3.1 Flash Image..." });
+            let architectureImageUrl = "";
+            const imagePrompt = propData.imagePrompt || `Professional cloud and AI architecture diagram for ${input.projectTitle}`;
+            try {
+                architectureImageUrl = await generateProposalImage(imagePrompt);
+            } catch (imageError) {
+                console.error("Architecture image generation failed", imageError);
+            }
+
             setStatus({ phase: 'completed', message: "Compiling artifacts..." });
             
             if (onProposalCreated) {
@@ -71,9 +82,9 @@ export const ProposalGenerator = ({ onClose, onProposalCreated }: { onClose: () 
                      description: propData.description || "Proposal ready.",
                      painPoints: propData.painPoints || [],
                      solution: propData.solution || propData,
-                     architectureMermaid: propData.mermaid || "graph TD\\n A-->B",
-                     aiArchitectureImageUrl: "", 
-                     aiArchitectureImagePrompt: propData.imagePrompt || "photorealistic architectural cloud infrastructure diagram",
+                     architectureMermaid: normalizeMermaidCode(propData.mermaid || "graph TD\n  Client-->API\n  API-->AI"),
+                     aiArchitectureImageUrl: architectureImageUrl,
+                     aiArchitectureImagePrompt: imagePrompt,
                      documents: [
                          { id: "doc-1", name: "Proposal_Overview.md", size: "12 KB", type: "other", dateAdded: new Date().toISOString() },
                          { id: "doc-2", name: "Statement_of_Work.md", size: "8 KB", type: "pdf", dateAdded: new Date().toISOString() }
@@ -197,7 +208,7 @@ export const ProposalGenerator = ({ onClose, onProposalCreated }: { onClose: () 
                             <div className="space-y-2">
                                 <h3 className="text-xl font-bold tracking-tight">{status.message}</h3>
                                 <div className="flex justify-center gap-1">
-                                    {['researching', 'synthesizing', 'reviewing', 'completed'].map(p => (
+                                    {['researching', 'synthesizing', 'reviewing', 'generating-image', 'completed'].map(p => (
                                         <div 
                                             key={p} 
                                             className={cn(
