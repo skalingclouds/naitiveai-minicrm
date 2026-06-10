@@ -29,6 +29,8 @@ import {
   reviewSOW,
   parseSOWToTasks
 } from "../../services/geminiService";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Attachment, ProjectDetailViewProps, SubTask, ProjectTag, Assignee, Stage, ProposalInput } from "../../types";
 
 // --- Inline Icons ---
@@ -138,6 +140,7 @@ export function ProjectDetailView(props: ProjectDetailViewProps) {
   const [isGeneratingInvoice, setIsGeneratingInvoice] = React.useState(false);
   const [isGeneratingProposal, setIsGeneratingProposal] = React.useState(false);
   const [isGeneratingSOW, setIsGeneratingSOW] = React.useState(false);
+  const [docPreview, setDocPreview] = React.useState<{ name: string; content: string } | null>(null);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -414,11 +417,25 @@ export function ProjectDetailView(props: ProjectDetailViewProps) {
           };
           const research = await performProposalResearch(input);
           const proposal = await generateRobustProposal(input, research);
-          
+
+          const docName = `Proposal_${props.client}_${props.title.substring(0, 10)}.md`;
+          const content = [
+              `# Proposal — ${props.title}`,
+              `**Client:** ${props.client}  |  **Value:** $${props.value.toLocaleString()}`,
+              '',
+              proposal.description || '',
+              '',
+              Array.isArray(proposal.painPoints) && proposal.painPoints.length
+                  ? `## Pain Points\n${proposal.painPoints.map((p: string) => `- ${p}`).join('\n')}`
+                  : '',
+              '',
+              proposal.solution || '',
+          ].filter(Boolean).join('\n');
+
           const newDoc: Attachment = {
               id: Math.random().toString(36).substr(2, 9),
-              name: `Proposal_${props.client}_${props.title.substring(0, 10)}.txt`,
-              size: "24 KB",
+              name: docName,
+              size: `${Math.max(1, Math.round(content.length / 1024))} KB`,
               type: "contract",
               dateAdded: new Date().toISOString(),
               isUserUploaded: false
@@ -426,7 +443,7 @@ export function ProjectDetailView(props: ProjectDetailViewProps) {
           const updated = [...attachments, newDoc];
           setAttachments(updated);
           notifyUpdate({ attachments: updated });
-          alert("Proposal generated and saved to attachments!");
+          setDocPreview({ name: docName, content });
       } catch (e) {
           console.error(e);
       } finally {
@@ -448,17 +465,19 @@ export function ProjectDetailView(props: ProjectDetailViewProps) {
           const research = { content: "Previously conducted research.", sources: [] }; // Mock for flow
           const proposal = await generateRobustProposal(input, research);
           const sow = await generateSOW(input, proposal);
-          
+
+          const docName = `SOW_${props.client}_${props.title.substring(0, 10)}.md`;
           const newDoc: Attachment = {
               id: Math.random().toString(36).substr(2, 9),
-              name: `SOW_${props.client}_${props.title.substring(0, 10)}.txt`,
-              size: "32 KB",
+              name: docName,
+              size: `${Math.max(1, Math.round(sow.length / 1024))} KB`,
               type: "contract",
               dateAdded: new Date().toISOString(),
               isUserUploaded: false
           };
           const updatedDocs = [...attachments, newDoc];
           setAttachments(updatedDocs);
+          setDocPreview({ name: docName, content: sow });
 
           // Task Population Logic
           if (confirm("SOW generated! Would you like to automatically populate the project task list with the milestones from this SOW?")) {
@@ -476,7 +495,8 @@ export function ProjectDetailView(props: ProjectDetailViewProps) {
                   const allTasks = [...tasks, ...newTasks];
                   setTasks(allTasks);
                   notifyUpdate({ attachments: updatedDocs, subTasks: allTasks });
-                  alert(`${newTasks.length} tasks imported from SOW.`);
+              } else {
+                  notifyUpdate({ attachments: updatedDocs });
               }
           } else {
               notifyUpdate({ attachments: updatedDocs });
@@ -490,37 +510,51 @@ export function ProjectDetailView(props: ProjectDetailViewProps) {
 
   const handleGenerateCompletionDoc = async () => {
       setIsGeneratingDoc(true);
-      const text = await generateCompletionDocument(props);
-      const newDoc: Attachment = {
-          id: Math.random().toString(36),
-          name: `Completion_Cert_${props.title.substring(0, 10)}.txt`,
-          size: "15 KB",
-          type: "contract",
-          dateAdded: new Date().toISOString(),
-          isUserUploaded: false
-      };
-      const updated = [...attachments, newDoc];
-      setAttachments(updated);
-      setStage('Completed');
-      notifyUpdate({ attachments: updated, status: 'Completed' });
-      setIsGeneratingDoc(false);
+      try {
+          const text = await generateCompletionDocument(props);
+          const docName = `Completion_Cert_${props.title.substring(0, 10)}.md`;
+          const newDoc: Attachment = {
+              id: Math.random().toString(36),
+              name: docName,
+              size: `${Math.max(1, Math.round(text.length / 1024))} KB`,
+              type: "contract",
+              dateAdded: new Date().toISOString(),
+              isUserUploaded: false
+          };
+          const updated = [...attachments, newDoc];
+          setAttachments(updated);
+          setStage('Completed');
+          notifyUpdate({ attachments: updated, status: 'Completed' });
+          setDocPreview({ name: docName, content: text });
+      } catch (e) {
+          console.error(e);
+      } finally {
+          setIsGeneratingDoc(false);
+      }
   };
 
   const handleGenerateInvoice = async () => {
       setIsGeneratingInvoice(true);
-      const text = await generateInvoice(props);
-      const newDoc: Attachment = {
-          id: Math.random().toString(36),
-          name: `Invoice_${props.title.substring(0, 10)}.txt`,
-          size: "12 KB",
-          type: "invoice",
-          dateAdded: new Date().toISOString(),
-          isUserUploaded: false
-      };
-      const updated = [...attachments, newDoc];
-      setAttachments(updated);
-      notifyUpdate({ attachments: updated });
-      setIsGeneratingInvoice(false);
+      try {
+          const text = await generateInvoice(props);
+          const docName = `Invoice_${props.title.substring(0, 10)}.md`;
+          const newDoc: Attachment = {
+              id: Math.random().toString(36),
+              name: docName,
+              size: `${Math.max(1, Math.round(text.length / 1024))} KB`,
+              type: "invoice",
+              dateAdded: new Date().toISOString(),
+              isUserUploaded: false
+          };
+          const updated = [...attachments, newDoc];
+          setAttachments(updated);
+          notifyUpdate({ attachments: updated });
+          setDocPreview({ name: docName, content: text });
+      } catch (e) {
+          console.error(e);
+      } finally {
+          setIsGeneratingInvoice(false);
+      }
   };
 
   const handlePay = () => {
@@ -865,11 +899,9 @@ export function ProjectDetailView(props: ProjectDetailViewProps) {
                     )}
                     {aiSummary && (
                         <div>
-                             <div className="whitespace-pre-wrap font-sans text-foreground/90 text-sm leading-relaxed p-2" dangerouslySetInnerHTML={{ __html: aiSummary
-                                .replace(/^## (.*$)/gim, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
-                                .replace(/^### (.*$)/gim, '<h4 class="text-base font-semibold mt-3 mb-1">$1</h4>')
-                                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                             }} />
+                             <div className="prose prose-sm dark:prose-invert max-w-none p-2 text-sm leading-relaxed text-foreground/90 [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:text-sm [&_h3]:font-semibold [&_p]:my-1.5 [&_ul]:my-1.5 [&_ol]:my-1.5 [&_li]:my-0.5 [&_strong]:text-foreground">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{aiSummary}</ReactMarkdown>
+                             </div>
                             <Button onClick={handleGenerateSummary} variant="ghost" size="sm" className="mt-4 text-primary">
                                 Regenerate
                             </Button>
@@ -1169,6 +1201,40 @@ export function ProjectDetailView(props: ProjectDetailViewProps) {
                 <div className="flex justify-end gap-2 p-6 pt-0">
                     <Button variant="outline" onClick={() => setIsAssigneeModalOpen(false)}>Cancel</Button>
                     <Button onClick={handleAddAssignee}>Invite</Button>
+                </div>
+            </div>
+        </div>
+    )}
+
+    {/* Generated Document Preview Modal */}
+    {docPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={() => setDocPreview(null)}>
+            <div
+                className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg border bg-background shadow-xl animate-in zoom-in-95 duration-200"
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between border-b p-4">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <Icons.FileText className="h-5 w-5 shrink-0 text-primary" />
+                        <h3 className="truncate text-sm font-semibold">{docPreview.name}</h3>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigator.clipboard.writeText(docPreview.content)}
+                        >
+                            Copy
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDocPreview(null)}>
+                            <Icons.X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+                <div className="custom-scrollbar overflow-y-auto p-6">
+                    <div className="text-sm leading-relaxed text-foreground/90 [&_h1]:mb-3 [&_h1]:text-xl [&_h1]:font-bold [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:mb-1.5 [&_h3]:text-sm [&_h3]:font-semibold [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1 [&_strong]:text-foreground [&_table]:my-3 [&_table]:w-full [&_th]:border-b [&_th]:p-2 [&_th]:text-left [&_th]:font-semibold [&_td]:border-b [&_td]:border-border/50 [&_td]:p-2 [&_hr]:my-4 [&_hr]:border-border">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{docPreview.content}</ReactMarkdown>
+                    </div>
                 </div>
             </div>
         </div>

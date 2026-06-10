@@ -1,208 +1,148 @@
-
 import * as React from 'react';
+import { AudioLines, Inbox as InboxIcon, LayoutGrid, RotateCcw } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
+import { Inbox } from './components/Inbox';
+import { Copilot } from './components/Copilot';
+import { TranscriptModal } from './components/TranscriptModal';
 import { ProjectDetailView } from './components/ui/project-detail-view';
 import { ProposalDetailView } from './components/ProposalDetailView';
 import { generateProposalImage } from './services/geminiService';
-import { Project, Proposal } from './types';
+import { WorkspaceProvider, useWorkspace } from './lib/store';
+import { cn } from './lib/utils';
 
-function App() {
-  const [currentView, setCurrentView] = React.useState<'dashboard' | 'project' | 'proposal'>('dashboard');
+type View = 'dashboard' | 'inbox' | 'project' | 'proposal';
+
+function Shell() {
+  const { state, dispatch } = useWorkspace();
+  const [currentView, setCurrentView] = React.useState<View>('dashboard');
   const [selectedProjectId, setSelectedProjectId] = React.useState<string | null>(null);
   const [selectedProposalId, setSelectedProposalId] = React.useState<string | null>(null);
-  const [proposals, setProposals] = React.useState<Proposal[]>([]);
-  
-  // Initial Mock Data
-  const [projects, setProjects] = React.useState<Project[]>([
-      {
-        id: "proj-1",
-        title: "Website Redesign for Client X",
-        client: "Client X",
-        status: "In-Progress",
-        completionPercentage: 45,
-        value: 12500,
-        breadcrumbs: [
-          { label: "Client Projects", href: "#" },
-          { label: "Website Redesign for Client X", href: "#" },
-        ],
-        assignees: [
-          { name: "Achmad Hakim", avatarUrl: "https://picsum.photos/seed/achmad/150/150" },
-          { name: "Samantha Emanuel", avatarUrl: "https://picsum.photos/seed/samantha/150/150" },
-        ],
-        dateRange: {
-          start: "June 3, 2025",
-          end: "June 28, 2025",
-        },
-        tags: [
-            { label: "Design", variant: "destructive" },
-            { label: "Client Work", variant: "secondary" },
-        ],
-        description:
-          "This task focuses on preparing a high-impact visual presentation that showcases the new website design concept for Client X. The goal is to clearly communicate the updated UI direction, design system, and user flow improvements to the client in a concise and engaging format.",
-        attachments: [
-          { id: "att-1", name: "ClientX_UI_Redesign.pdf", size: "4.8 Mb", type: "pdf", isUserUploaded: false, dateAdded: "2025-06-03" },
-          { id: "att-2", name: "Homepage_Mockup.fig", size: "12.4 Mb", type: "figma", isUserUploaded: false, dateAdded: "2025-06-04" },
-        ],
-        subTasks: [
-          {
-            id: 1,
-            task: "Schedule initial client meeting",
-            category: "Discovery",
-            status: "Completed",
-            dueDate: "June 3, 2025",
-            dependsOn: []
-          },
-          {
-            id: 2,
-            task: "Gather business goals and user needs",
-            category: "Discovery",
-            status: "Completed",
-            dueDate: "June 4, 2025",
-            dependsOn: [1]
-          },
-          {
-            id: 3,
-            task: "Review current website performance",
-            category: "Discovery",
-            status: "In Progress",
-            dueDate: "June 5, 2025",
-            dependsOn: []
-          },
-          {
-            id: 4,
-            task: "Develop wireframes and prototypes",
-            category: "Design",
-            status: "Pending",
-            dueDate: "June 12, 2025",
-            dependsOn: [2, 3]
-          },
-        ],
-      },
-      {
-          id: "proj-2",
-          title: "Mobile App Development",
-          client: "TechStart Inc",
-          status: "Kickoff",
-          completionPercentage: 0,
-          value: 25000,
-          breadcrumbs: [{ label: "Client Projects", href: "#" }, { label: "Mobile App Development", href: "#" }],
-          assignees: [],
-          dateRange: { start: "July 1, 2025", end: "Dec 1, 2025" },
-          tags: [{ label: "Dev", variant: "default" }],
-          description: "End-to-end development of the iOS and Android application.",
-          attachments: [],
-          subTasks: []
-      },
-      {
-          id: "proj-3",
-          title: "Annual SEO Audit",
-          client: "RetailGiant",
-          status: "Paid",
-          completionPercentage: 100,
-          value: 4500,
-          breadcrumbs: [{ label: "Client Projects", href: "#" }, { label: "Annual SEO Audit", href: "#" }],
-          assignees: [],
-          dateRange: { start: "Jan 10, 2025", end: "Jan 20, 2025" },
-          tags: [{ label: "Marketing", variant: "secondary" }],
-          description: "Complete audit of web properties.",
-          attachments: [{ id: "inv-1", name: "Invoice_SEO.pdf", size: "10KB", type: "invoice", isUserUploaded: false, dateAdded: "2025-01-20" }],
-          subTasks: []
-      }
-  ]);
+  const [transcriptOpen, setTranscriptOpen] = React.useState(false);
 
   React.useEffect(() => {
-    // Optional: Set dark mode by default for better aesthetics
     document.documentElement.classList.add('dark');
   }, []);
 
-  const handleSelectProject = (project: Project) => {
-      setSelectedProjectId(project.id);
-      setCurrentView('project');
+  const selectedProject = state.projects.find(p => p.id === selectedProjectId);
+  const selectedProposal = state.proposals.find(p => p.id === selectedProposalId);
+
+  const newLeadCount = state.leads.filter(l => l.status === 'new' && !l.triage).length;
+
+  const openProposal = (proposalId: string) => {
+    setSelectedProposalId(proposalId);
+    setCurrentView('proposal');
   };
 
-  const handleCreateProject = (project: Project) => {
-      setProjects([...projects, project]);
+  const resetDemo = () => {
+    if (confirm('Reset the demo? This restores the original seed data.')) {
+      dispatch({ type: 'RESET' });
+      setCurrentView('dashboard');
+    }
   };
 
-  const handleUpdateProject = (updatedProject: Project) => {
-      setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
-  };
-  
-  const handleDeleteProject = (projectId: string) => {
-      if (confirm("Are you sure you want to delete this project?")) {
-        setProjects(prev => prev.filter(p => p.id !== projectId));
-      }
-  };
-
-  const selectedProject = projects.find(p => p.id === selectedProjectId);
-  const selectedProposal = proposals.find(p => p.id === selectedProposalId);
-
-  const Logo = () => (
-    <div className="flex items-center cursor-pointer transition-opacity hover:opacity-80 gap-3" onClick={() => setCurrentView('dashboard')}>
-      <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground font-black text-2xl shadow-lg shadow-primary/20">
-        N
-      </div>
-      <div className="flex flex-col -space-y-1">
-        <span className="text-xl font-black tracking-tighter">NATIVE</span>
-        <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">AI Consulting</span>
-      </div>
-    </div>
+  const NavTab = ({ view, icon: Icon, label, badge }: { view: View; icon: React.ElementType; label: string; badge?: number }) => (
+    <button
+      onClick={() => setCurrentView(view)}
+      className={cn(
+        'flex h-9 items-center gap-2 rounded-full px-3.5 text-sm font-medium transition-colors',
+        currentView === view ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground',
+      )}
+    >
+      <Icon className="h-4 w-4" />
+      <span className="hidden sm:inline">{label}</span>
+      {badge !== undefined && badge > 0 && (
+        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+          {badge}
+        </span>
+      )}
+    </button>
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
       {/* Global Header */}
-      <header className="sticky top-0 z-[60] w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container flex h-16 items-center px-4 md:px-8 max-w-7xl mx-auto justify-between">
-          <Logo />
-          <div className="flex items-center gap-4">
-            <div className="h-8 w-8 rounded-full bg-muted border flex items-center justify-center text-xs font-medium text-muted-foreground">
-                U
+      <header className="sticky top-0 z-[60] w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
+          <div className="flex items-center gap-6">
+            <div className="flex cursor-pointer items-center gap-3 transition-opacity hover:opacity-80" onClick={() => setCurrentView('dashboard')}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-2xl font-black text-primary-foreground shadow-lg shadow-primary/20">
+                N
+              </div>
+              <div className="flex flex-col -space-y-1">
+                <span className="text-xl font-black tracking-tighter">NATIVE</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">AI Consulting</span>
+              </div>
             </div>
+            <nav className="flex items-center gap-1">
+              <NavTab view="dashboard" icon={LayoutGrid} label="Workspace" />
+              <NavTab view="inbox" icon={InboxIcon} label="Inbox" badge={newLeadCount} />
+            </nav>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setTranscriptOpen(true)}
+              className="flex h-9 items-center gap-2 rounded-full px-3.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              title="Turn a meeting transcript into CRM updates"
+            >
+              <AudioLines className="h-4 w-4" />
+              <span className="hidden md:inline">Log Meeting</span>
+            </button>
+            <Copilot />
+            <button
+              onClick={resetDemo}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground"
+              title="Reset demo data"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <main className="flex-1 bg-muted/20 dark:bg-background/50">
         {currentView === 'dashboard' && (
-            <Dashboard 
-              projects={projects} 
-              proposals={proposals}
-              onSelectProject={handleSelectProject} 
-              onCreateProject={handleCreateProject}
-              onDeleteProject={handleDeleteProject}
-              onSelectProposal={(p) => { setSelectedProposalId(p.id); setCurrentView('proposal'); }}
-              onCreateProposal={(p) => setProposals([...proposals, p])}
-              onDeleteProposal={(id) => setProposals(prev => prev.filter(x => x.id !== id))}
-            />
+          <Dashboard
+            onSelectProject={(p) => { setSelectedProjectId(p.id); setCurrentView('project'); }}
+            onSelectProposal={(p) => openProposal(p.id)}
+            onGoToInbox={() => setCurrentView('inbox')}
+          />
         )}
+        {currentView === 'inbox' && <Inbox onOpenProposal={openProposal} />}
         {currentView === 'project' && selectedProject && (
-            <div className="flex items-start md:items-center justify-center p-4 sm:p-8 min-h-[calc(100vh-4rem)]">
-               <ProjectDetailView 
-                  {...selectedProject} 
-                  onBack={() => setCurrentView('dashboard')}
-                  onUpdate={handleUpdateProject}
-               />
-            </div>
+          <div className="flex min-h-[calc(100vh-4rem)] items-start justify-center p-4 sm:p-8 md:items-center">
+            <ProjectDetailView
+              {...selectedProject}
+              onBack={() => setCurrentView('dashboard')}
+              onUpdate={(project) => dispatch({ type: 'UPDATE_PROJECT', project })}
+            />
+          </div>
         )}
         {currentView === 'proposal' && selectedProposal && (
-            <div className="flex items-start justify-center p-4 sm:p-8 min-h-[calc(100vh-4rem)]">
-               <ProposalDetailView 
-                  {...selectedProposal} 
-                  onBack={() => setCurrentView('dashboard')}
-                  onUpdateProposal={(updatedProposal) => setProposals(prev => prev.map(p => p.id === updatedProposal.id ? updatedProposal : p))}
-                  onConvertToProject={(newProject) => {
-                      setProjects([...projects, newProject]);
-                      // Delete the won proposal, or keep it as won? Let's keep it but user can delete it in Dashboard.
-                  }}
-                  onGenerateImage={generateProposalImage}
-               />
-            </div>
+          <div className="flex min-h-[calc(100vh-4rem)] items-start justify-center p-4 sm:p-8">
+            <ProposalDetailView
+              {...selectedProposal}
+              onBack={() => setCurrentView('dashboard')}
+              onUpdateProposal={(proposal) => dispatch({ type: 'UPDATE_PROPOSAL', proposal })}
+              onConvertToProject={(project) => {
+                dispatch({ type: 'CREATE_PROJECT', project });
+                dispatch({ type: 'ADD_ACTIVITY', entry: { actor: 'user', kind: 'project', message: `Converted won deal into project "${project.title}".` } });
+              }}
+              onGenerateImage={generateProposalImage}
+            />
+          </div>
         )}
       </main>
+
+      {transcriptOpen && <TranscriptModal onClose={() => setTranscriptOpen(false)} />}
     </div>
   );
 }
+
+const App = () => (
+  <WorkspaceProvider>
+    <Shell />
+  </WorkspaceProvider>
+);
 
 export default App;
