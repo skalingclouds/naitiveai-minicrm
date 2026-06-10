@@ -1,0 +1,318 @@
+# Instincts generated from https://github.com/skalingclouds/naitiveai-minicrm
+# Generated: 2026-06-10T08:21:34.131Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: naitiveai-minicrm-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: feat
+
+## Evidence
+
+- 1 commits analyzed
+- Detected conventional commit pattern
+- Examples: feat: AI-native CRM workspace with inbox triage, copilot, and intelligence feed
+
+---
+id: naitiveai-minicrm-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Commit Length
+
+## Action
+
+Write moderate-length commit messages (~79 characters)
+
+## Evidence
+
+- Average commit message length: 79 chars
+- Based on 1 commits
+
+---
+id: naitiveai-minicrm-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Naming Files
+
+## Action
+
+Use PascalCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: PascalCase
+
+---
+id: naitiveai-minicrm-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: naitiveai-minicrm-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: naitiveai-minicrm-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: naitiveai-minicrm-instinct-file-naming
+trigger: "When creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Instinct File Naming
+
+## Action
+
+Name the file using PascalCase
+
+## Evidence
+
+- Pattern in namingConventions.files
+
+---
+id: naitiveai-minicrm-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Instinct Function Naming
+
+## Action
+
+Name the function using camelCase
+
+## Evidence
+
+- Pattern in namingConventions.functions
+
+---
+id: naitiveai-minicrm-instinct-class-naming
+trigger: "When defining a new class"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Instinct Class Naming
+
+## Action
+
+Name the class using PascalCase
+
+## Evidence
+
+- Pattern in namingConventions.classes
+
+---
+id: naitiveai-minicrm-instinct-constant-naming
+trigger: "When declaring a constant"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Instinct Constant Naming
+
+## Action
+
+Name the constant using SCREAMING_SNAKE_CASE
+
+## Evidence
+
+- Pattern in namingConventions.constants
+
+---
+id: naitiveai-minicrm-instinct-import-style
+trigger: "When importing modules"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Instinct Import Style
+
+## Action
+
+Use relative import paths
+
+## Evidence
+
+- Pattern in importStyle
+
+---
+id: naitiveai-minicrm-instinct-export-style
+trigger: "When exporting modules or functions"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in exportStyle
+
+---
+id: naitiveai-minicrm-instinct-commit-format
+trigger: "When committing code changes"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Instinct Commit Format
+
+## Action
+
+Start the commit message with 'feat:' followed by a brief description
+
+## Evidence
+
+- Seen in commit 'feat: AI-native CRM workspace with inbox triage, copilot, and intelligence feed'
+- Pattern in commits.prefixes
+
+---
+id: naitiveai-minicrm-instinct-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Instinct Commit Length
+
+## Action
+
+Keep the commit message concise, around 79 characters on average
+
+## Evidence
+
+- Pattern in commits.averageLength
+
+---
+id: naitiveai-minicrm-instinct-error-handling
+trigger: "When handling errors in code"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Instinct Error Handling
+
+## Action
+
+Use try-catch blocks for error handling
+
+## Evidence
+
+- Pattern in errorHandling.style
+
+---
+id: naitiveai-minicrm-instinct-test-location
+trigger: "When adding new tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: skalingclouds/naitiveai-minicrm
+---
+
+# Naitiveai Minicrm Instinct Test Location
+
+## Action
+
+Place tests in a separate directory from the source code
+
+## Evidence
+
+- Pattern in architecture.folderStructure.testLocation
+
