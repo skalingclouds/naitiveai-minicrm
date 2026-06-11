@@ -156,7 +156,7 @@ export const SEED_PROPOSALS: Proposal[] = [
       '# Statement of Work — Phase 2: EHR-Aware Context Retrieval\n\n**Client:** Solace Health  \n**Fixed Bid:** $38,000 · **Duration:** 8 weeks from Aug 3, 2026\n\n## Milestones\n| Milestone | Week | Deliverable |\n| --- | --- | --- |\n| FHIR retrieval service | 1–3 | Read-only service w/ purpose-of-use logging |\n| Context ranking + redaction | 3–5 | Minimal-necessary field selection |\n| Sidebar integration | 5–7 | Citation chips in agent drafts |\n| Security review + pilot | 7–8 | Audit sign-off, 10-agent pilot |\n\n## Client Responsibilities\n- FHIR sandbox access by week 1\n- Security review scheduled by week 5\n- Pilot agent availability in week 8\n\n## Acceptance\nPilot shows ≥20% lift in full-resolution rate over Phase 1 baseline.',
     documents: [
       { id: 'doc-1', name: 'Proposal_Overview.md', size: '12 KB', type: 'other', dateAdded: '2026-06-02' },
-      { id: 'doc-2', name: 'Statement_of_Work.md', size: '9 KB', type: 'pdf', dateAdded: '2026-06-02' },
+      { id: 'doc-2', name: 'Statement_of_Work.md', size: '9 KB', type: 'other', dateAdded: '2026-06-02' },
     ],
     signed: false,
     paid: false,
@@ -191,7 +191,7 @@ export const SEED_PROPOSALS: Proposal[] = [
       '# Statement of Work — AI Itinerary Concierge MVP\n\n**Client:** Nordwind Travel  \n**Fixed Bid:** $29,500 · **Duration:** 6 weeks from Jul 6, 2026\n\n## Milestones\n| Milestone | Week | Deliverable |\n| --- | --- | --- |\n| Trip-brief extraction | 1–2 | Transcript → structured brief |\n| Itinerary engine | 2–4 | Grounded on 400 past trips |\n| Planner review UI | 4–6 | One-click amendment workflow |\n\n## Client Responsibilities\n- Historical trip data export by week 1\n- Two planners for weekly feedback sessions\n\n## Acceptance\nPlanners rate ≥70% of drafts as "usable with minor edits."',
     documents: [
       { id: 'doc-1', name: 'Proposal_Overview.md', size: '11 KB', type: 'other', dateAdded: '2026-05-18' },
-      { id: 'doc-2', name: 'Statement_of_Work.md', size: '8 KB', type: 'pdf', dateAdded: '2026-05-18' },
+      { id: 'doc-2', name: 'Statement_of_Work.md', size: '8 KB', type: 'other', dateAdded: '2026-05-18' },
     ],
     signed: false,
     paid: false,

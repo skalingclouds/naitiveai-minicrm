@@ -777,6 +777,11 @@ ${sowText}
 app.post("/api/generate-document", async (req, res) => {
     try {
         const { kind, project } = req.body as { kind: "invoice" | "completion"; project: any };
+
+        if (!kind || (kind !== "invoice" && kind !== "completion")) {
+            return res.status(400).json({ error: "Invalid document kind. Must be 'invoice' or 'completion'." });
+        }
+
         const prompts: Record<string, string> = {
             invoice: `
 Generate a professional invoice in clean markdown for NATIVE AI Consulting Agency.
