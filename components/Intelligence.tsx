@@ -35,9 +35,11 @@ export const BriefingCard = () => {
       dispatch({ type: 'ADD_ACTIVITY', entry: { actor: 'ai', kind: 'briefing', message: 'Generated the daily briefing.' } });
     } catch (e) {
       console.error('Briefing failed', e);
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      dispatch({ type: 'ADD_ACTIVITY', entry: { actor: 'system', kind: 'error', message: `Failed to generate briefing: ${errorMessage}` } });
+      setDraft('Failed to generate briefing');
     } finally {
       setStreaming(false);
-      setDraft('');
     }
   };
 

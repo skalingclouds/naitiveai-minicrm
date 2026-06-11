@@ -81,6 +81,15 @@ export const Inbox = ({ onOpenProposal }: InboxProps) => {
       });
     } catch (e) {
       console.error('Triage failed', e);
+      const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+      dispatch({
+        type: 'UPDATE_LEAD',
+        lead: { ...lead, triage: { error: true, errorMessage } as any },
+      });
+      dispatch({
+        type: 'ADD_ACTIVITY',
+        entry: { actor: 'system', kind: 'triage_error', message: `Triage failed for ${lead.company}: ${errorMessage}` },
+      });
     } finally {
       setTriaging(prev => {
         const next = new Set(prev);
@@ -90,8 +99,15 @@ export const Inbox = ({ onOpenProposal }: InboxProps) => {
     }
   };
 
-  const triageAll = () => {
-    state.leads.filter(l => l.status === 'new' && !l.triage).forEach(runTriage);
+  const triageAll = async () => {
+    const leadsToTriage = state.leads.filter(l => l.status === 'new' && !l.triage);
+    for (const lead of leadsToTriage) {
+      try {
+        await runTriage(lead);
+      } catch (e) {
+        console.error(`Triage failed for ${lead.company}`, e);
+      }
+    }
   };
 
   const convertToDeal = (lead: Lead) => {

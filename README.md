@@ -33,7 +33,7 @@ Deliberately minimal — the point is the AI, not the infrastructure.
 ```bash
 npm install
 echo "GEMINI_API_KEY=your-key-here" > .env.local
-npm run dev          # client + API on http://localhost:3000
+npm run dev          # client + API on http://localhost:3010
 ```
 
 ## Build

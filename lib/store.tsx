@@ -161,12 +161,30 @@ function reducer(state: WorkspaceState, action: Action): WorkspaceState {
   }
 }
 
+function isValidWorkspaceState(parsed: any): parsed is WorkspaceState {
+  if (!parsed || typeof parsed !== 'object') return false;
+  if (!Array.isArray(parsed.projects)) return false;
+  if (!Array.isArray(parsed.proposals)) return false;
+  if (!Array.isArray(parsed.leads)) return false;
+  if (!Array.isArray(parsed.contacts)) return false;
+  if (!Array.isArray(parsed.activity)) return false;
+
+  // Validate that array fields exist on projects
+  for (const p of parsed.projects) {
+    if (!p || typeof p !== 'object') return false;
+    if (!Array.isArray(p.subTasks)) return false;
+    if (!Array.isArray(p.attachments)) return false;
+  }
+
+  return true;
+}
+
 function loadInitial(): WorkspaceState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed && Array.isArray(parsed.projects)) return parsed as WorkspaceState;
+      if (isValidWorkspaceState(parsed)) return parsed;
     }
   } catch { /* corrupted storage falls through to seed */ }
   return seedState();
@@ -223,7 +241,7 @@ export function buildWorkspaceSnapshot(state: WorkspaceState) {
       triage: l.triage ? { score: l.triage.score, tier: l.triage.tier, suggestedValue: l.triage.suggestedValue } : null,
     })),
     contacts: state.contacts.map(c => ({
-      id: c.id, name: c.name, title: c.title, company: c.company, email: c.email, lastTouch: c.lastTouch, notes: c.notes,
+      id: c.id, name: c.name, title: c.title, company: c.company, lastTouch: c.lastTouch,
     })),
     recentActivity: state.activity.slice(0, 10).map(a => ({ at: a.timestamp, actor: a.actor, message: a.message })),
   };

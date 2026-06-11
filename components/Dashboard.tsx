@@ -278,16 +278,16 @@ export const Dashboard = ({ onSelectProject, onSelectProposal, onGoToInbox }: Da
             </div>
             <div className="space-y-4 p-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Project Title</label>
-                <input className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" value={newProjectTitle} onChange={e => setNewProjectTitle(e.target.value)} placeholder="e.g. Website Redesign" autoFocus />
+                <label htmlFor="new-project-title" className="text-sm font-medium">Project Title</label>
+                <input id="new-project-title" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" value={newProjectTitle} onChange={e => setNewProjectTitle(e.target.value)} placeholder="e.g. Website Redesign" autoFocus />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Client Name</label>
-                <input className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" value={newProjectClient} onChange={e => setNewProjectClient(e.target.value)} placeholder="e.g. Acme Corp" />
+                <label htmlFor="new-project-client" className="text-sm font-medium">Client Name</label>
+                <input id="new-project-client" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" value={newProjectClient} onChange={e => setNewProjectClient(e.target.value)} placeholder="e.g. Acme Corp" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Estimated Value ($)</label>
-                <input className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" type="number" value={newProjectValue} onChange={e => setNewProjectValue(e.target.value)} />
+                <label htmlFor="new-project-value" className="text-sm font-medium">Estimated Value ($)</label>
+                <input id="new-project-value" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" type="number" value={newProjectValue} onChange={e => setNewProjectValue(e.target.value)} />
               </div>
             </div>
             <div className="flex justify-end gap-2 p-6 pt-0">
