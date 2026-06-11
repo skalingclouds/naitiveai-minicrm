@@ -1205,7 +1205,6 @@ export function ProjectDetailView(props: ProjectDetailViewProps) {
             </div>
         </div>
     )}
-
     {/* Generated Document Preview Modal */}
     {docPreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={() => setDocPreview(null)}>
@@ -1222,7 +1221,14 @@ export function ProjectDetailView(props: ProjectDetailViewProps) {
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => navigator.clipboard.writeText(docPreview.content)}
+                            onClick={async () => {
+                                try {
+                                    await navigator.clipboard.writeText(docPreview.content);
+                                    // Optionally add visual feedback here
+                                } catch {
+                                    // Fallback or error notification
+                                }
+                            }}
                         >
                             Copy
                         </Button>
